@@ -79,6 +79,52 @@
       var previousDate;
       var previousX = 0;
 
+
+      svg.selectAll(".line")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "line")
+        .attr("id", function(d) {
+          return (d.Name).replace(/ /g, '').replace(/\./g, '')
+        })
+        .attr("x", function(d, i) {
+          if (i != 0) {
+            previousDate = new Date(data[i - 1].In)
+            newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
+          } else {
+            previousDate = new Date(data[1].In)
+            newX = 0;
+          }
+          previousX = previousX + newX;
+          return previousX + 3;
+        })
+        .attr("y", function(d) {
+          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Lov Verma") {
+            return 160;
+          }
+          else if (d.Name == "Anil Kumar") {
+            return 135;
+          }
+          else {
+            return 185;
+          }
+        })
+        .attr("width", 2)
+        .attr("height", function(d) {
+          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Lov Verma") {
+            return 40;
+          }
+          else if (d.Name == "Anil Kumar") {
+            return 65
+          }
+          else {
+            return 15;
+          }
+        })
+        .attr("opacity", 0.8)
+
+      previousX = 0;
+
       svg.selectAll(".bar")
         .data(data)
         .enter().append("rect")
@@ -110,14 +156,26 @@
           d3.selectAll('.bar').transition()
             .style('opacity', function() {
               return (this === selectedBar) ? 1 : 0.3;
-            });
-          console.log(this.id)
+            })
+            .attr("height", function(d){
+              return (this === selectedBar) ? 24 : 20;
+            })
+            .attr("y", function(d) {
+              return (this === selectedBar) ? 198 : 200;
+            })
           d3.selectAll(".secretary:not(#" + this.id + ")")
-          .transition()
-          .duration(300)
+            .transition()
+            .duration(300)
             .style('opacity', function() {
               console.log('')
-              return 0.3;
+              return 0.16;
+            });
+          d3.selectAll(".line:not(#" + this.id + ")")
+            .transition()
+            .duration(300)
+            .style('opacity', function() {
+              console.log('')
+              return 0.4;
             });
           tip.show(d, i)
         })
@@ -125,15 +183,29 @@
           d3.selectAll('.bar').transition()
             .style('opacity', function() {
               return 1;
-            });
+            })
+            .attr("height", function(d){
+              return 20;
+            })
+            .attr("y", function(d) {
+              return 200;
+            })
           d3.selectAll(".secretary:not(#" + this.id + ")")
-          .transition()
-          .duration(300)
+            .transition()
+            .duration(300)
             .style('opacity', function() {
               return 1;
             });
+          d3.selectAll(".line:not(#" + this.id + ")")
+            .transition()
+            .duration(300)
+            .style('opacity', function() {
+              console.log('')
+              return 0.8;
+            });
           tip.hide(d, i)
         });
+
 
 
       previousX = 0;
@@ -151,9 +223,13 @@
           return (d.Name).replace(/ /g, '').replace(/\./g, '')
         })
         .attr("y", function(d, i) {
-          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Anil Kumar" || d.Name == "Lov Verma") {
+          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" ||  d.Name == "Lov Verma") {
             return 155;
-          } else {
+          }
+          else if (d.Name == "Anil Kumar") {
+            return 130
+          }
+          else {
             return 180;
           }
         })
@@ -185,6 +261,7 @@
       stroke: white;
       stroke-width: 1px;
     }
+
     .d3-tip {
       line-height: 1.6;
       padding: 6px;
@@ -193,6 +270,11 @@
       color: #222;
       border-radius: 4px;
       font-size: 12px;
+    }
+
+    .line {
+      fill: #E0E0E0;
+      stroke-width: 0px;
     }
   </style>
 
