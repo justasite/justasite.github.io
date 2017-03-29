@@ -1,93 +1,72 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-  body {
-    font: 10px sans-serif;
-  }
-
-  .axis path,
-  .axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-  }
-
-  .x.axis path {
-    display: none;
-  }
-
-  .line {
-    fill: rgb(238, 135, 135);
-    stroke: rgb(186, 27, 6);
-    stroke-width: 1.5px;
-  }
-</style>
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-
-
-
 </head>
 
-<body style="width: 100%">
+<body>
+  <!-- Standard D3 library: v4 -->
   <script src="//d3js.org/d3.v4.min.js"></script>
-  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
+  <!-- Custom Tooltip plugin -->
   <script src="tooltip.js"></script>
 
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/locale/af.js"></script> -->
-
+  <!-- The Visualization Code -->
   <script type="text/javascript">
+    // Importing the dataset. I've cleaned the dataset a bit, so be sure to use the very same csv file, otherwise things may break
     d3.csv("HealthSecs.csv", function(data) {
-      data.forEach(function(d) {
-        d["Duration in Months"] = +d["Duration in Months"];
-      });
 
-      console.log(data[0].In);
+      // If you want to change the width of the visualization, you need to change three things - Range parameter within dataScale, width of the container div#viz and the value of config.width
 
+      // Size of the SVG container which sits within the container - div#viz.
       var config = {
-        width: 1100,
+        width: 1000,
         height: 400
       }
-      var padding = 10;
 
       var parseDate = d3.timeFormat("%d-%m-%Y")
 
-
+      // The part of the code which appends the svg to the container - div#viz
       var svg = d3.select("#viz").append("svg")
         .attr("id", "timeline")
         .attr("width", config.width)
         .attr("height", config.height)
         .append("g")
 
+
+      // If you want to change the width of the visualization, you need to change three things - Range parameter within dataScale, width of the container div#viz and the value of config.width
+
+      // I've added a D3 scale which automatically changes all the svg parameters accordingly.
       var dateScale = d3.scaleTime()
         .domain([new Date(data[1].In), new Date()])
         .range([0, 900]);
 
+      // The tooltip which appears below the horizontal red bar
       var tip = d3.tip()
         .attr('class', 'd3-tip')
         .offset([-10, 0])
-        // .data(data)
         .html(function(d) {
-          console.log()
-          // return "asdashdajsdgasjdfahgdn"
+          // The HTML code which makes up the tooltip
           return "<span><b>In:</b> " + d.In + " " + "<br/><b>Previous:</b> " + d["Previous"] + "<br><b>Out:</b> " + d.Out + "<br><b>Later:</b> " + d.Later + "</span>";
         })
 
 
+      // Don't change these. These variables help to calculate the spacing and other position metrics, based on the scale and the width of the svg element.
       var previousDate;
       var previousX = 0;
 
-
+      // This section draws the 'helper line' which connects the 'Secretary name label' with the horizontal red bars.
       svg.selectAll(".line")
         .data(data)
         .enter().append("rect")
         .attr("class", "line")
         .attr("id", function(d) {
+          // Giving an ID (which is mapped to the data by the Secretary Name) to the individual lines so that we can change them on:hover later.
           return (d.Name).replace(/ /g, '').replace(/\./g, '')
         })
         .attr("x", function(d, i) {
+          // This function calculates the x position of the helper line. Do not change.
           if (i != 0) {
             previousDate = new Date(data[i - 1].In)
             newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
@@ -99,30 +78,29 @@
           return previousX + 3;
         })
         .attr("y", function(d) {
+          // The y position of the helper line. Hard Coded.
           if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Lov Verma") {
             return 160;
-          }
-          else if (d.Name == "Anil Kumar") {
+          } else if (d.Name == "Anil Kumar") {
             return 135;
-          }
-          else {
+          } else {
             return 185;
           }
         })
         .attr("width", 2)
         .attr("height", function(d) {
+          // The height of the helper line. Hard Coded.
           if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Lov Verma") {
             return 40;
-          }
-          else if (d.Name == "Anil Kumar") {
+          } else if (d.Name == "Anil Kumar") {
             return 65
-          }
-          else {
+          } else {
             return 15;
           }
         })
         .attr("opacity", 0.8)
 
+      // Don't change this. It helps to calculate the spacing and other position metrics, based on the scale and the width of the svg element.
       previousX = 0;
 
       svg.selectAll(".bar")
@@ -130,9 +108,12 @@
         .enter().append("rect")
         .attr("class", "bar")
         .attr("id", function(d) {
+          // Giving an ID (which is mapped to the data by the Secretary Name) to the individual bars so that we can change them on:hover later.
           return (d.Name).replace(/ /g, '').replace(/\./g, '')
         })
         .attr("x", function(d, i) {
+          // This function calculates the x position of the helper line. Do not change.
+
           if (i != 0) {
             previousDate = new Date(data[i - 1].In)
             newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
@@ -143,21 +124,21 @@
           previousX = previousX + newX;
           return previousX;
         })
-        .attr("y", function(d) {
-          return 200;
-        })
+        .attr("y", 200)
         .attr("width", function(d) {
           return Math.abs(dateScale(new Date(d.In)) - dateScale(new Date(d.Out)))
         })
         .attr("height", 20)
+        // Calls the tooltip
         .call(tip)
         .on("mouseover", function(d, i) {
+          // This function does all the animation magic: changing the width & height & opacity of the horizontal red box, changing opacity of the name lable, and changing the opacity of the helper line.
           var selectedBar = this;
           d3.selectAll('.bar').transition()
-            .style('opacity', function() {
+            .style('opacity', function(d) {
               return (this === selectedBar) ? 1 : 0.3;
             })
-            .attr("height", function(d){
+            .attr("height", function(d) {
               return (this === selectedBar) ? 24 : 20;
             })
             .attr("y", function(d) {
@@ -166,74 +147,63 @@
           d3.selectAll(".secretary:not(#" + this.id + ")")
             .transition()
             .duration(300)
-            .style('opacity', function() {
-              console.log('')
-              return 0.16;
-            });
+            .style('opacity', 0.16);
           d3.selectAll(".line:not(#" + this.id + ")")
             .transition()
             .duration(300)
-            .style('opacity', function() {
-              console.log('')
-              return 0.4;
-            });
+            .style('opacity', 0.4);
+          // Makes the tooltip visible
           tip.show(d, i)
         })
         .on("mouseout", function(d, i) {
+          // This function does all the animation magic: changing the width & height & opacity of the horizontal red box, changing opacity of the name lable, and changing the opacity of the helper line.
           d3.selectAll('.bar').transition()
-            .style('opacity', function() {
-              return 1;
-            })
-            .attr("height", function(d){
-              return 20;
-            })
-            .attr("y", function(d) {
-              return 200;
-            })
+            .style('opacity', 1)
+            .attr("height", 20)
+            .attr("y", 200);
           d3.selectAll(".secretary:not(#" + this.id + ")")
             .transition()
             .duration(300)
-            .style('opacity', function() {
-              return 1;
-            });
+            .style('opacity', 1);
           d3.selectAll(".line:not(#" + this.id + ")")
             .transition()
             .duration(300)
-            .style('opacity', function() {
-              console.log('')
-              return 0.8;
-            });
+            .style('opacity', 0.8);
+          // Hides the tooltip
           tip.hide(d, i)
         });
 
-
-
+      // Don't change this. It helps to calculate the spacing and other position metrics, based on the scale and the width of the svg element.
       previousX = 0;
 
+
+      // This section is responsible for drawing the Secretary Name Labels. Unlike the tooltip, the name labels are SVG elements.
       var texts = svg.selectAll("text")
         .data(data)
         .enter();
 
+      // Continued ...
       texts.append("text")
         .text(function(d) {
           return d.Name;
         })
         .attr("class", "secretary")
         .attr("id", function(d) {
+          // Giving an ID (which is mapped to the data by the Secretary Name) to the individual Name Labels so that we can change them on:hover later.
           return (d.Name).replace(/ /g, '').replace(/\./g, '')
         })
         .attr("y", function(d, i) {
-          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" ||  d.Name == "Lov Verma") {
+          // The y position of the helper line. Hard Coded.
+          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Lov Verma") {
             return 155;
-          }
-          else if (d.Name == "Anil Kumar") {
+          } else if (d.Name == "Anil Kumar") {
             return 130
-          }
-          else {
+          } else {
             return 180;
           }
         })
         .attr("x", function(d, i) {
+          // This function calculates the x position of the helper line. Do not change.
           if (i != 0) {
             previousDate = new Date(data[i - 1].In)
             newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
@@ -244,34 +214,48 @@
           previousX = previousX + newX;
           return previousX;
         })
+        // Text styling of the SVG element.
         .attr("font-size", 12)
         .attr("font-family", "Gotham HTF")
         .attr("text-anchor", "start")
         .attr("font-weight", "bold");
 
     });
+
   </script>
 
-  <div id="viz" style="margin: 0 auto; width: 1100px;">
-  </div>
 
+  <!-- The main container where the visualization lives -->
+  <div id="viz" style="margin: 0 auto; width: 1100px;"></div>
+
+
+
+  <!-- All the styling which is required by the visualization -->
   <style>
+
+    body {
+      width: 100%;
+    }
+
+    /* Styling the horizontal red bars */
     .bar {
       fill: #FF3029;
       stroke: white;
       stroke-width: 1px;
     }
 
+    /* Styling the on:hover tooltip which appears below the horizontal red bars */
     .d3-tip {
       line-height: 1.6;
       padding: 6px;
+      /* Please correct the font stack as per The Ken's website. */
       font-family: "Gotham HTF", sans-serif;
-      /*background: rgba(0, 0, 0, 0.8);*/
       color: #222;
       border-radius: 4px;
       font-size: 12px;
     }
 
+    /* The thin line which connects the Secretary with the horizontal red bar */
     .line {
       fill: #E0E0E0;
       stroke-width: 0px;
