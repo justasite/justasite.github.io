@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  body {
+    font: 10px sans-serif;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+  .x.axis path {
+    display: none;
+  }
+
+  .line {
+    fill: rgb(238, 135, 135);
+    stroke: rgb(186, 27, 6);
+    stroke-width: 1.5px;
+  }
+</style>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+
+
+</head>
+
+<body style="width: 100%">
+  <script src="//d3js.org/d3.v4.min.js"></script>
+  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+  <script src="tooltip.js"></script>
+
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/locale/af.js"></script> -->
+
+  <script type="text/javascript">
+    d3.csv("HealthSecs.csv", function(data) {
+      data.forEach(function(d) {
+        d["Duration in Months"] = +d["Duration in Months"];
+      });
+
+      console.log(data[0].In);
+
+      var config = {
+        width: 1100,
+        height: 400
+      }
+      var padding = 10;
+
+      var parseDate = d3.timeFormat("%d-%m-%Y")
+
+
+      var svg = d3.select("#viz").append("svg")
+        .attr("id", "timeline")
+        .attr("width", config.width)
+        .attr("height", config.height)
+        .append("g")
+
+      var dateScale = d3.scaleTime()
+        .domain([new Date(data[1].In), new Date()])
+        .range([0, 900]);
+
+      var tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10, 0])
+        // .data(data)
+        .html(function(d) {
+          console.log()
+          // return "asdashdajsdgasjdfahgdn"
+          return "<span><b>In:</b> " + d.In + " " + "<br/><b>Previous:</b> " + d["Previous"] + "<br><b>Out:</b> " + d.Out + "<br><b>Later:</b> " + d.Later + "</span>";
+        })
+
+
+      var previousDate;
+      var previousX = 0;
+
+      svg.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("id", function(d) {
+          return (d.Name).replace(/ /g, '').replace(/\./g, '')
+        })
+        .attr("x", function(d, i) {
+          if (i != 0) {
+            previousDate = new Date(data[i - 1].In)
+            newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
+          } else {
+            previousDate = new Date(data[1].In)
+            newX = 0;
+          }
+          previousX = previousX + newX;
+          return previousX;
+        })
+        .attr("y", function(d) {
+          return 200;
+        })
+        .attr("width", function(d) {
+          return Math.abs(dateScale(new Date(d.In)) - dateScale(new Date(d.Out)))
+        })
+        .attr("height", 20)
+        .call(tip)
+        .on("mouseover", function(d, i) {
+          var selectedBar = this;
+          d3.selectAll('.bar').transition()
+            .style('opacity', function() {
+              return (this === selectedBar) ? 1 : 0.3;
+            });
+          console.log(this.id)
+          d3.selectAll(".secretary:not(#" + this.id + ")")
+          .transition()
+          .duration(300)
+            .style('opacity', function() {
+              console.log('')
+              return 0.3;
+            });
+          tip.show(d, i)
+        })
+        .on("mouseout", function(d, i) {
+          d3.selectAll('.bar').transition()
+            .style('opacity', function() {
+              return 1;
+            });
+          d3.selectAll(".secretary:not(#" + this.id + ")")
+          .transition()
+          .duration(300)
+            .style('opacity', function() {
+              return 1;
+            });
+          tip.hide(d, i)
+        });
+
+
+      previousX = 0;
+
+      var texts = svg.selectAll("text")
+        .data(data)
+        .enter();
+
+      texts.append("text")
+        .text(function(d) {
+          return d.Name;
+        })
+        .attr("class", "secretary")
+        .attr("id", function(d) {
+          return (d.Name).replace(/ /g, '').replace(/\./g, '')
+        })
+        .attr("y", function(d, i) {
+          if (d.Name == "Prasanna K. Hota" || d.Name == "K. Chandramouli" || d.Name == "Anil Kumar" || d.Name == "Lov Verma") {
+            return 155;
+          } else {
+            return 180;
+          }
+        })
+        .attr("x", function(d, i) {
+          if (i != 0) {
+            previousDate = new Date(data[i - 1].In)
+            newX = Math.abs(dateScale(new Date(d.In)) - dateScale(previousDate))
+          } else {
+            previousDate = new Date(data[1].In)
+            newX = 0;
+          }
+          previousX = previousX + newX;
+          return previousX;
+        })
+        .attr("font-size", 12)
+        .attr("font-family", "Gotham HTF")
+        .attr("text-anchor", "start")
+        .attr("font-weight", "bold");
+
+    });
+  </script>
+
+  <div id="viz" style="margin: 0 auto; width: 1100px;">
+  </div>
+
+  <style>
+    .bar {
+      fill: #FF3029;
+      stroke: white;
+      stroke-width: 1px;
+    }
+    .d3-tip {
+      line-height: 1.6;
+      padding: 6px;
+      font-family: "Gotham HTF", sans-serif;
+      /*background: rgba(0, 0, 0, 0.8);*/
+      color: #222;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+
+</body>
